@@ -3,6 +3,9 @@
 
 # -- import
 import forms, json
+# -- threading (ejecutar en segundo plano)
+import threading
+# -- flask imports
 from flask import (
     Flask,
     render_template,
@@ -13,8 +16,13 @@ from flask import (
     url_for,
     flash, #-- notifies
     g, # -- para variables globales, la variable dura lo que dura el request
+    copy_current_request_context, # -- para ejecutar en segundo plano
 )
+# -- para emails
+# from flask_mail import Mail, Message
+# -- CSRFProtect
 from flask_wtf import CSRFProtect
+# -- config DevelopmentConfig
 from config import DevelopmentConfig
 # -- models
 from models import (
@@ -33,6 +41,28 @@ app = Flask(
 # -- app config
 app.config.from_object(DevelopmentConfig)
 csrf = CSRFProtect()
+
+# -- instanciar Mail
+# mail = Mail()
+# def send_email(user_email, username):
+    # -- enviar correo
+    # msg = Message(
+          # -- subject
+    #     'Gracias por registrarse',
+          # -- to
+    #     sender = app.config['MAIL_USERNAME'],
+          # -- recipients
+    #     recipients = [
+    #         user_email # -- user que se acaba de registrar
+    #     ]
+    # )
+    # -- msg en html
+    # msg.html = render_template(
+    #     'email/register.html',
+    #     username = username
+    # )
+    # -- enviar msg
+    # mail.send(msg)
 
 
 # -- error 404 (page not found)
@@ -173,6 +203,23 @@ def user_register():
         db.session.add(user)
         # -- save in db
         db.session.commit()
+
+        # -- para poder ejecutar en segundo plano con flask
+        # @copy_current_request_context
+        # def send_message(email, username):
+        #     send_email(email, username)
+
+        # -- send email en segundo plano
+        # sender = threading.Thread(
+        #     name='mail_sender',
+        #     target=send_email,
+        #     args(
+        #         user.email,
+        #         user.username
+        #     )
+        # )
+        # sender.start()
+
         # -- flash message
         success_message = "El usuario ha sido registrado."
         flash(success_message)
@@ -197,6 +244,8 @@ def cookies():
 if __name__ == '__main__':
     # -- csrf init config
     csrf.init_app(app)
+    # -- mail init config
+    # mail.init_app(app)
     # -- db init config
     db.init_app(app)
     # -- context ...
