@@ -1,0 +1,10 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+  <h3>Hola {{ name }}</h3>
+
+  {% from "layout/_macro.html" import show_list_h %}
+    {{ show_list_h(name) }}
+
+
+{% endblock %}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Variables en Templates</title>
+  </head>
+  <body>
+    <h1>Variables en Templates</h1>
+
+    Hola {{ name }}! <br>
+    <br>
+    Age: {{ age }}! <br>
+    {% if age > 18 %}
+      Es mayor de edad
+    {% else %}
+      Es menor de edad
+    {% endif %} <br>
+    <br>
+    Tupla: {{ tupla }}! <br>
+    <br>
+    {% for item in tupla %}
+      <li> {{ item }} </li>
+    {% endfor %}
+
+  </body>
+</html>

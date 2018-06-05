@@ -1,0 +1,9 @@
+{% extends 'layout/base.html' %}
+
+{% block content %}
+  Hola {{ name }}! <br>
+  <br>
+  {% for c in clients_list %}
+    <li> {{ c }} </li>
+  {% endfor %}
+{% endblock %}
