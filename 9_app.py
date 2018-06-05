@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # -- import
+import forms, json
 from flask import (
     Flask,
     render_template,
@@ -10,11 +11,16 @@ from flask import (
     session,
     redirect,
     url_for,
-    flash #-- notifies
+    flash, #-- notifies
+    g, # -- para variables globales, la variable dura lo que dura el request
 )
-from flask_wtf import CsrfProtect
-
-import forms, json
+from flask_wtf import CSRFProtect
+from config import DevelopmentConfig
+# -- models
+from models import (
+    db,
+    User
+)
 
 # -- app
 app = Flask(
@@ -22,8 +28,12 @@ app = Flask(
     # template_folder = 'templates' # -- se puede omitir si se llama "templates"
 )
 # -- secret key (CsrfProtect)
-app.secret_key = 'my_secret_key'
-csrf = CsrfProtect(app)
+# app.secret_key = SECRETE_KEY
+# csrf = CsrfProtect(app)
+# -- app config
+app.config.from_object(DevelopmentConfig)
+csrf = CSRFProtect()
+
 
 # -- error 404 (page not found)
 @app.errorhandler(404)
@@ -33,10 +43,28 @@ csrf = CsrfProtect(app)
 def page_not_found(e):
     return render_template('page/404.html'), 404 # -- poner error para retornar a cliente
 
+# -- before request "hook" (se ejecuta antes del request)
+@app.before_request
+def before_request():
+    g.test = 'before_request here...'
+    # -- si user not in session
+    if 'username' not in session and request.endpoint in ['comment']:
+        return redirect(url_for('login')) # -- nombre de la funcion "def" a la cual redirigimos
+    elif 'username' in session and request.endpoint in ['login', 'user_register']:
+        return redirect(url_for('index')) # -- nombre de la funcion "def" a la cual redirigimos
+
+# -- after_request "hook" (se ejecuta despues del request)
+@app.after_request
+def after_request(response):
+    # print(response)
+    print(g.test)
+    return response # -- siempre retornar response
+
 # -- home
 @app.route('/')
 @app.route('/home/<name>/')
 def index(name='Sr. Javi Vazz'):
+    print(g.test)
     return render_template('page/home.html',
         name=name,
     )
@@ -83,17 +111,26 @@ def comments():
 # -- login
 @app.route('/login/', methods = [ 'GET', 'POST' ])
 def login():
-    # -- read session
-    if 'username' in session:
-        username = session['username']
-        print(username)
     # -- login form
     login_form = forms.LoginForm(request.form)
     if request.method == 'POST' and login_form.validate():
+        # -- values
         username = login_form.username.data
-        session['username'] = username
-        success_message = 'Welcome {}!'.format(username)
-        flash(success_message)
+        password = login_form.password.data
+        # -- get user
+        user = User.query.filter_by(
+            username=username
+        ).first()
+        # -- validate login user
+        if user is not None and user.verify_password(password):
+            success_message = 'Welcome {}!'.format(username)
+            session['username'] = username
+            return redirect(url_for('index'))
+        else:
+            error_message = 'Usuario o contraseña no válida!'
+        # -- flash message
+        flash(error_message)
+    # -- return
     return render_template('page/login.html',
         form = login_form
     )
@@ -118,6 +155,33 @@ def logout():
         session.pop('username')
     return redirect(url_for('login')) # -- nombre de la funcion "def" a la cual redirigimos
 
+@app.route('/user/register/', methods = ['GET', 'POST'])
+def user_register():
+    register_user_form = forms.RegisterUserForm(request.form)
+    if request.method == 'POST' and register_user_form.validate():
+        # -- obj a guardar
+        user = User(
+            # username = register_user_form.username.data,
+            # email = register_user_form.email.data,
+            # password = register_user_form.password.data,
+            # -- mismo orden en db (model)
+            register_user_form.username.data,
+            register_user_form.email.data,
+            register_user_form.password.data,
+        )
+        # -- connect db
+        db.session.add(user)
+        # -- save in db
+        db.session.commit()
+        # -- flash message
+        success_message = "El usuario ha sido registrado."
+        flash(success_message)
+    # -- return
+    return render_template(
+        'user/register.html',
+        form = register_user_form
+    )
+
 # -- Cookies
 @app.route('/cookies/', methods = [ 'GET', 'POST' ])
 def cookies():
@@ -131,4 +195,15 @@ def cookies():
 
 # -- exec
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    # -- csrf init config
+    csrf.init_app(app)
+    # -- db init config
+    db.init_app(app)
+    # -- context ...
+    with app.app_context():
+        # -- create tables...
+        db.create_all()
+    # -- run app
+    app.run(
+        port=8000 # -- run app in port 8000
+    )

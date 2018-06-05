@@ -11,43 +11,16 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-  {% with notifies = get_flashed_messages() %}
-    {% if notifies %}
-      {% for notify in notifies %}
-        <div class="alert alert-info">
-          {{ notify }}
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-
+<br>
+<div class="row">
   <div class="container">
-    <h1>Tutorial Flask</h1>
-
-    <img src="{{ url_for('static', filename='img/logo-cf.jpg') }}" alt="">
-
-
-    <div class="row">
-      <div class="col">
-        {% block content %}{% endblock %}
-      </div>
+    <div class="col">
+      <h1>
+        <img src="{{ url_for('static', filename='img/logo-cf.jpg') }}" alt="">
+        Page Not Found (404)
+      </h1>
     </div>
-
-    <br>
-
-    <footer>
-      <div class="container">
-        <div class="row">
-          &copy; 2018. Curso Flask
-        </div>
-      </div>
-    </footer>
-
   </div>
-
-  <!-- scripts -->
-  <script type="text/javascript" src="https://code.jquery.com/jquery-latest.min.js
-"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</div>
 </body>
 </html>

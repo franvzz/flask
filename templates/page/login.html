@@ -1,20 +1,18 @@
 {% extends 'layout/base.html' %}
 
 {% block content %}
-  <h3>Hola {{ name }}</h3>
+  <h3>Login</h3>
 
   {% from 'layout/_macro_render_field.html' import render_field %}
     <div class="row">
       <div class="container">
         <div class="col-6">
-          <form method="POST">
+          <form id="login-form" method="POST">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             {{ render_field(form.username, class='form-control', placeholder='Username') }}
-            {{ render_field(form.email, class='form-control', placeholder='Email') }}
-            {{ render_field(form.comment, class='form-control', placeholder='Comment') }}
-            {{ render_field(form.honeypot, class='form-control', placeholder='Comment') }}
+            {{ render_field(form.password, class='form-control', placeholder='Password') }}
             <br>
-            <input class="btn btn-default" type="submit" value="Send">
+            <input class="btn btn-default" type="submit" value="Login">
           </form>
         </div>
       </div>
